@@ -1,5 +1,5 @@
 /******************************************************************************
- * This is evolved from the original macro $ROOTSYS/tutorial/io/hadd.C 
+ * This is evolved from the original macro $ROOTSYS/tutorial/io/hadd.C
  * which is provided as a tutorial with the ROOT package.
  * http://root.cern.ch/drupal/content/downloading-root
  *
@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
 		cout << "       Files names and weights can be given in any order." << endl;
 		cout << "          But the first weight found will be assigned to the first file listed,"     << endl;
 		cout << "          second weight found will be assigned to the second file listed and so on." << endl;
-		cout << "       Output file will be named results.root and will be recreated with subseqent"  << endl; 
+		cout << "       Output file will be named results.root and will be recreated with subseqent"  << endl;
 		cout << "          executions." << endl;
-		cout << "       Return value:"  << endl; 
+		cout << "       Return value:"  << endl;
 		cout << "          0 in any error, 1 upon successful completion." << endl;
 		cout << "======================== END USAGE INFO =============================================\n" << endl;
 		return 0;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
 	vec_pair inputList;
 	vector<string> inputFileNames;
-	vector<float> inputWeights; 
+	vector<float> inputWeights;
 
 	try {
 		for (int i=1; i< argc; ++i)
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 			} else {
 				inputFileNames.push_back(sargi);
 			}
-		}  
+		}
 	} catch (exception& e)
 	{
 		cout << e.what() << endl;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
 	//do some basic sanity checks
 	//if no weights are given, just add them. else use the weights.
-	if (inputWeights.size() > 0) 	
+	if (inputWeights.size() > 0)
 	{
 		if (inputFileNames.size() != inputWeights.size())
 		{
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 		string msg("");
 		msg += "File";
 		if (inputWeights.size()>0) msg += "/Weight";
-		msg += " = "; 
+		msg += " = ";
 		msg += vFileList.at(i).first->GetName();
 		if (inputWeights.size()>0) {
 			stringstream swgt;
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 		}
 		cout << msg << endl;
 	}
-	
+
 	Target = TFile::Open( "result.root", "RECREATE" );
    MergeRootfile( Target, vFileList );
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
 void haddws() {
 	/**********************************************************
-   * in an interactive ROOT session, edit the file names, 
+   * in an interactive ROOT session, edit the file names,
 	* corresponding weights, and target name. Then
    * root:> .x haddws.C+
 	**********************************************************/
@@ -149,7 +149,7 @@ void haddws() {
 	vec_pair vFileList;
 	vFileList.push_back(make_pair(TFile::Open("simple1.root"),1.0));
 	vFileList.push_back(make_pair(TFile::Open("simple2.root"),0.5));
-	
+
 	for (vec_pair_it it = vFileList.begin(); it != vFileList.end(); ++it)
 	{
 		cout << "File/weight = " << it->first->GetName() << "/" << it->second << endl;
@@ -169,7 +169,7 @@ void MergeRootfile( TDirectory *target, const vector<pair<TFile*, float> >& vFil
    //  cout << "Target path: " << target->GetPath() << endl;
    TString path( (char*)strstr( target->GetPath(), ":" ) );
    path.Remove( 0, 2 );
-	
+
 	vec_pair_it it = vFileList.begin();
    TFile *first_source = (*it).first;
    const float first_weight = (*it).second;
@@ -240,13 +240,18 @@ void MergeRootfile( TDirectory *target, const vector<pair<TFile*, float> >& vFil
          // newdir is now the starting point of another round of merging
          // newdir still knows its depth within the target file via
          // GetPath(), so we can still figure out where we are in the recursion
-         MergeRootfile( newdir, vFileList);
+		 if ((std::string(obj->GetName()).find("efficiencies") != std::string::npos)) {
+			 std::cout << "Warning: ignoring directory with name " << obj->GetName() << std::endl;
+		 } else {
+			 MergeRootfile( newdir, vFileList);
+		 }
 
       } else {
 
          // object is of no type that we know or can handle
          cout << "Unknown object type, name: "
          << obj->GetName() << " title: " << obj->GetTitle() << endl;
+		 obj = NULL;
       }
 
       // now write the merged histogram (which is "in" obj) to the target file
